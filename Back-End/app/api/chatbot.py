@@ -64,7 +64,12 @@ ALERT_TYPES = {
         'keywords': ['went outside', 'leaving', 'going out', 'want to go home'],
         'severity': 'high',
         'message': 'Alert: Potential wandering behavior detected. Immediate attention needed.'
-    }
+    },
+    'TIME_CONFUSION': {
+        'keywords': ['what day', 'what time', 'what date', 'which day', 'today date'],
+        'severity': 'medium',
+        'message': 'Alert: Pam is asking about date/time. Possible temporal disorientation.'
+    },
 }
 
 class ChatMessage(BaseModel):
@@ -150,9 +155,23 @@ async def chat(message: ChatMessage):
             detail=f"Error processing request: {str(e)}"
         )
 
+def get_current_datetime():
+    """Get current date and time in a human-readable format"""
+    now = datetime.now()  # Using local time is fine for this use case
+    date_str = now.strftime("%A, %B %d, %Y")  # e.g., "Monday, February 19, 2024"
+    time_str = now.strftime("%I:%M %p")       # e.g., "02:30 PM"
+    return date_str, time_str
+
 def get_context_for_message(message: ChatMessage) -> str:
     """Generate context based on Pam's medical history and routines"""
-    context = f"Patient Information:\n"
+    # Get current date and time
+    current_date, current_time = get_current_datetime()
+    
+    context = f"Current Date and Time:\n"
+    context += f"Today is {current_date}\n"
+    context += f"Current time is {current_time}\n\n"
+    
+    context += f"Patient Information:\n"
     context += f"Name: {PAM_DATA['name']}\n"
     context += f"Age: {PAM_DATA['age']}\n"
     context += f"Condition: {PAM_DATA['condition']}\n"
