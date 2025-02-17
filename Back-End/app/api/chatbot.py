@@ -72,6 +72,17 @@ ALERT_TYPES = {
     },
 }
 
+# Add this at the top with other constants
+GREETING_KEYWORDS = {
+    'hey', 'hi', 'hello', 'good morning', 'good afternoon', 
+    'good evening', 'howdy', 'hiya'
+}
+
+GREETING_RESPONSES = {
+    'patient': "Hi Pam! How can I help you today?",
+    'caregiver': "Hello Laurel! How can I assist you with Pam's care today?"
+}
+
 class ChatMessage(BaseModel):
     message: str
     user_type: str
@@ -97,11 +108,35 @@ def check_for_alerts(message: str) -> tuple[bool, str, str, str]:
     
     return False, "", "", ""
 
+def is_simple_greeting(message: str) -> bool:
+    """Check if the message is a simple greeting"""
+    return message.lower().strip() in GREETING_KEYWORDS
+
 @router.post("/chat", response_model=ChatResponse)
 async def chat(message: ChatMessage):
     logger.debug(f"Received chat request with message: {message.message}")
     
     try:
+        # Check if it's a simple greeting
+        if is_simple_greeting(message.message):
+            return {
+                "response": GREETING_RESPONSES[message.user_type],
+                "timestamp": datetime.utcnow().isoformat(),
+                "status": "success",
+                "alert": False,
+                "alert_message": "",
+                "alert_type": "",
+                "severity": "",
+                "conversation_flag": None,
+                "chat_log": {
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "user_message": message.message,
+                    "bot_response": GREETING_RESPONSES[message.user_type],
+                    "user_type": message.user_type,
+                    "alert": False
+                }
+            }
+
         # Check for alerts first
         has_alert, alert_type, alert_message, severity = check_for_alerts(message.message)
         
