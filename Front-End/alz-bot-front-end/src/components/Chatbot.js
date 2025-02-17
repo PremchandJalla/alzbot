@@ -1,51 +1,81 @@
-import { useState, useRef, useEffect } from 'react';
-import { useContext } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
+import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
 const Chatbot = () => {
-  const [messages, setMessages] = useState([
-    { id: 1, text: "Hello! I'm your Care Companion. How can I help you today?", sender: 'bot' }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const { user } = useContext(AuthContext);
 
+  // Initialize with welcome message based on user type
+  useEffect(() => {
+    const welcomeMessage = user?.role === 'patient' 
+      ? "Hello Pam! I'm your Care Companion. How can I help you today?"
+      : "Hello Laurel! I'm here to help you care for Pam. What would you like to know?";
+    
+    setMessages([{
+      id: 1,
+      text: welcomeMessage,
+      sender: 'bot'
+    }]);
+  }, [user]);
+
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
-    // Add user message
-    const userMessage = {
-      id: messages.length + 1,
-      text: newMessage,
-      sender: 'user',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    const userMessage = { 
+      id: Date.now(), 
+      text: newMessage, 
+      sender: 'user' 
     };
-
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
     setNewMessage('');
     setIsTyping(true);
 
-    // Simulate bot response (replace with actual API call)
-    setTimeout(() => {
-      const botMessage = {
-        id: messages.length + 2,
-        text: "I understand. I'm here to help you. Can you tell me more?",
-        sender: 'bot',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/chatbot/chat`, {
+        message: newMessage,
+        user_type: user.role
+      });
+
+      const botMessage = { 
+        id: Date.now(), 
+        text: response.data.response, 
+        sender: 'bot'
       };
-      setMessages(prev => [...prev, botMessage]);
+      setMessages((prevMessages) => [...prevMessages, botMessage]);
+
+      // Handle alerts for caregivers
+      if (response.data.alert && user.role === 'caregiver') {
+        const alertMessage = {
+          id: Date.now() + 1,
+          text: `⚠️ Alert: ${response.data.alert_message}`,
+          sender: 'alert'
+        };
+        setMessages((prevMessages) => [...prevMessages, alertMessage]);
+      }
+    } catch (error) {
+      console.error('Error fetching response:', error);
+      const errorMessage = {
+        id: Date.now(),
+        text: 'Sorry, something went wrong. Please try again.',
+        sender: 'bot'
+      };
+      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleVoiceInput = () => {
@@ -81,15 +111,20 @@ const Chatbot = () => {
               className={`max-w-[80%] px-4 py-3 rounded-lg ${
                 message.sender === 'user'
                   ? 'bg-indigo-500 text-white rounded-br-none'
+                  : message.sender === 'alert'
+                  ? 'bg-amber-100 border-l-4 border-amber-500 text-amber-900'
                   : 'bg-white shadow-md rounded-bl-none'
               }`}
             >
-              <p className={`text-lg ${message.sender === 'user' ? 'text-white' : 'text-slate-900'}`}>
+              <p className={`text-lg ${
+                message.sender === 'user' 
+                  ? 'text-white' 
+                  : message.sender === 'alert'
+                  ? 'text-amber-900'
+                  : 'text-slate-900'
+              }`}>
                 {message.text}
               </p>
-              <span className={`text-xs ${message.sender === 'user' ? 'text-white/90' : 'text-slate-600'} mt-1 block`}>
-                {message.timestamp}
-              </span>
             </div>
           </div>
         ))}
@@ -109,7 +144,7 @@ const Chatbot = () => {
 
       {/* Chat Input */}
       <div className="bg-white border-t p-4">
-        <form onSubmit={handleSend} className="flex space-x-4">
+        <form onSubmit={handleSubmit} className="flex space-x-4">
           <button
             type="button"
             onClick={handleVoiceInput}
@@ -125,10 +160,12 @@ const Chatbot = () => {
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type your message here..."
             className="flex-1 border-2 border-indigo-100 rounded-full px-6 py-3 focus:outline-none focus:border-indigo-500 transition-colors text-lg text-slate-900 placeholder-slate-500"
+            disabled={isTyping}
           />
           <button
             type="submit"
-            className="bg-indigo-500 text-white rounded-full p-3 hover:bg-indigo-600 transition-colors"
+            className="bg-indigo-500 text-white rounded-full p-3 hover:bg-indigo-600 transition-colors disabled:opacity-50"
+            disabled={isTyping}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />

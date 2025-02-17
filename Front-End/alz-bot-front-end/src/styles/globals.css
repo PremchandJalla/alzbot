@@ -19,3 +19,37 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.logout-button {
+  background-color: #f56565;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.logout-button:hover {
+  background-color: #c53030;
+}
+
+.stats-card {
+  @apply bg-white rounded-lg shadow-md p-4 transition-transform duration-200;
+}
+
+.stats-card:hover {
+  @apply transform translate-y-[-2px];
+}
+
+.stats-value {
+  @apply text-lg font-semibold;
+}
+
+.progress-bar {
+  @apply w-full h-2 bg-gray-200 rounded-full overflow-hidden;
+}
+
+.progress-bar-fill {
+  @apply h-full rounded-full transition-all duration-300;
+}

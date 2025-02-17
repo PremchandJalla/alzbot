@@ -1,43 +1,56 @@
 import { createContext, useState } from 'react';
-import axios from 'axios';
+import { useRouter } from 'next/router';
 
 export const AuthContext = createContext();
 
+// Hardcoded credentials for POC
+const CREDENTIALS = {
+  caregiver: { username: 'laurel', password: 'caregiver123' },
+  patient: { username: 'pam', password: 'patient123' }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const router = useRouter();
 
   const login = async (credentials) => {
-    // Temporary credentials for POC
-    const tempCredentials = {
-      patient: { username: 'patientUser', password: 'patientPass' },
-      caregiver: { username: 'adminUser', password: 'adminPass' },
-    };
-
+    // Check against hardcoded credentials
     if (
-      credentials.username === tempCredentials.patient.username &&
-      credentials.password === tempCredentials.patient.password
+      credentials.username === CREDENTIALS.caregiver.username &&
+      credentials.password === CREDENTIALS.caregiver.password
     ) {
-      // Simulate a successful login for patient
-      const userData = { username: credentials.username, role: 'patient' };
+      const userData = {
+        username: 'laurel',
+        role: 'caregiver',
+        displayName: 'Laurel (Caregiver)'
+      };
       setUser(userData);
-      console.log('Logged in user:', userData);
+      router.push('/dashboard');
     } else if (
-      credentials.username === tempCredentials.caregiver.username &&
-      credentials.password === tempCredentials.caregiver.password
+      credentials.username === CREDENTIALS.patient.username &&
+      credentials.password === CREDENTIALS.patient.password
     ) {
-      // Simulate a successful login for caregiver
-      const userData = { username: credentials.username, role: 'caregiver' };
+      const userData = {
+        username: 'pam',
+        role: 'patient',
+        displayName: 'Pam',
+        medicalInfo: {
+          age: 72,
+          condition: "Alzheimer's (Moderate)",
+          routines: [],
+          medicalHistory: []
+        }
+      };
       setUser(userData);
-      console.log('Logged in user:', userData);
+      router.push('/chatbot');
     } else {
-      console.error('Invalid credentials');
-      // Handle invalid credentials (e.g., show an error message)
+      throw new Error('Invalid credentials');
     }
   };
 
   const logout = () => {
     setUser(null);
-    // Remove JWT token from storage (optional)
+    router.push('/login');
   };
 
   return (

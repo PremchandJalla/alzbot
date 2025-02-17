@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
 
 class ChatLogBase(BaseModel):
     patient_id: int
@@ -12,4 +13,9 @@ class ChatLog(ChatLogBase):
     timestamp: datetime
 
     class Config:
-        orm_mode = True 
+        orm_mode = True
+
+class ChatResponse(BaseModel):
+    response: str
+    timestamp: str
+    status: str 
