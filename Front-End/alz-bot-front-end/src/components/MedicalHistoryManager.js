@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+const PREDEFINED_MEDICAL_HISTORY = [
+  "Diagnosed with Alzheimer's at age 68",
+  "Mild hypertension",
+  "Occasional confusion during nighttime"
+];
+
 const MedicalHistoryManager = () => {
-  const [medicalHistory, setMedicalHistory] = useState([]);
+  const [medicalHistory, setMedicalHistory] = useState(PREDEFINED_MEDICAL_HISTORY);
   const [newEntry, setNewEntry] = useState('');
   const [error, setError] = useState(null);
 
@@ -11,10 +17,6 @@ const MedicalHistoryManager = () => {
     if (!newEntry.trim()) return;
 
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/update-medical-history`, {
-        medical_history: [...medicalHistory, newEntry]
-      });
-
       setMedicalHistory([...medicalHistory, newEntry]);
       setNewEntry('');
     } catch (error) {
@@ -26,10 +28,6 @@ const MedicalHistoryManager = () => {
   const handleDeleteEntry = async (index) => {
     try {
       const updatedHistory = medicalHistory.filter((_, i) => i !== index);
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/update-medical-history`, {
-        medical_history: updatedHistory
-      });
-
       setMedicalHistory(updatedHistory);
     } catch (error) {
       setError('Failed to delete entry');

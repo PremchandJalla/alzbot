@@ -102,8 +102,8 @@ const Login = () => {
             </div>
             <div className="text-center text-sm text-slate-900">
               <p>Demo Credentials:</p>
-              <p>Patient: patientUser / patientPass</p>
-              <p>Caregiver: adminUser / adminPass</p>
+              <p>Patient: pam / patient123</p>
+              <p>Caregiver: laurel / caregiver123</p>
             </div>
           </form>
         </div>

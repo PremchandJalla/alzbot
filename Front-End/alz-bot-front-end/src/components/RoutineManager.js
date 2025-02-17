@@ -1,8 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const PREDEFINED_ROUTINES = [
+  "Wake up at 7 AM",
+  "Breakfast at 8 AM",
+  "Take medication at 9 AM",
+  "Go for a walk at 10 AM",
+  "Lunch at 12 PM",
+  "Afternoon nap at 2 PM",
+  "Dinner at 6 PM",
+  "Bedtime at 9 PM"
+];
+
 const RoutineManager = () => {
-  const [routines, setRoutines] = useState([]);
+  const [routines, setRoutines] = useState(PREDEFINED_ROUTINES);
   const [newRoutine, setNewRoutine] = useState('');
   const [timeSlot, setTimeSlot] = useState('');
   const [error, setError] = useState(null);
@@ -13,10 +24,6 @@ const RoutineManager = () => {
 
     const routineItem = `${timeSlot} - ${newRoutine}`;
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/update-routine`, {
-        routines: [...routines, routineItem]
-      });
-
       setRoutines([...routines, routineItem]);
       setNewRoutine('');
       setTimeSlot('');
@@ -29,10 +36,6 @@ const RoutineManager = () => {
   const handleDeleteRoutine = async (index) => {
     try {
       const updatedRoutines = routines.filter((_, i) => i !== index);
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/update-routine`, {
-        routines: updatedRoutines
-      });
-
       setRoutines(updatedRoutines);
     } catch (error) {
       setError('Failed to delete routine');

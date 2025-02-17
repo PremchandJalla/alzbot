@@ -8,6 +8,7 @@ const Chatbot = () => {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const { user } = useContext(AuthContext);
+  const [conversationFlags, setConversationFlags] = useState([]);
 
   // Initialize with welcome message based on user type
   useEffect(() => {
@@ -49,22 +50,70 @@ const Chatbot = () => {
         user_type: user.role
       });
 
+      // Add the bot response
       const botMessage = { 
-        id: Date.now(), 
+        id: Date.now() + 1, 
         text: response.data.response, 
         sender: 'bot'
       };
       setMessages((prevMessages) => [...prevMessages, botMessage]);
 
-      // Handle alerts for caregivers
-      if (response.data.alert && user.role === 'caregiver') {
+      // Handle alerts
+      if (response.data.alert) {
         const alertMessage = {
-          id: Date.now() + 1,
-          text: `⚠️ Alert: ${response.data.alert_message}`,
-          sender: 'alert'
+          id: Date.now() + 2,
+          text: `⚠️ ${response.data.alert_message}`,
+          sender: 'alert',
+          type: response.data.alert_type,
+          severity: response.data.severity
         };
         setMessages((prevMessages) => [...prevMessages, alertMessage]);
+        
+        // Add conversation flag
+        if (response.data.conversation_flag) {
+          setConversationFlags((prevFlags) => [...prevFlags, {
+            type: response.data.conversation_flag,
+            timestamp: response.data.timestamp,
+            details: response.data.chat_log
+          }]);
+        }
+
+        // Add specific reassurance messages based on alert type
+        if (user.role === 'patient') {
+          let reassuranceMessage = {
+            id: Date.now() + 3,
+            sender: 'bot',
+            isReassurance: true
+          };
+
+          switch (response.data.alert_type) {
+            case 'MEDICATION_MISSED':
+              reassuranceMessage.text = "Don't worry, I've notified Laurel about your medication. She'll help you get back on track.";
+              break;
+            case 'SLEEP_DISRUPTION':
+              reassuranceMessage.text = "It's okay to have trouble sleeping sometimes. I've let Laurel know, and she'll check on you.";
+              break;
+            case 'ROUTINE_DEVIATION':
+              reassuranceMessage.text = "That's alright, we all forget sometimes. Laurel will help you with your routine.";
+              break;
+            case 'CONFUSION':
+              reassuranceMessage.text = "It's okay to feel confused. Laurel is coming to help you.";
+              break;
+            case 'WANDERING':
+              reassuranceMessage.text = "Please stay where you are. Laurel is coming to help you.";
+              break;
+            default:
+              reassuranceMessage.text = "Don't worry, I've notified Laurel. She'll help you out.";
+          }
+
+          setMessages((prevMessages) => [...prevMessages, reassuranceMessage]);
+        }
       }
+
+      // Store chat log in localStorage
+      const existingLogs = JSON.parse(localStorage.getItem('chatLogs') || '[]');
+      const updatedLogs = [response.data.chat_log, ...existingLogs];
+      localStorage.setItem('chatLogs', JSON.stringify(updatedLogs));
     } catch (error) {
       console.error('Error fetching response:', error);
       const errorMessage = {
@@ -81,6 +130,30 @@ const Chatbot = () => {
   const handleVoiceInput = () => {
     // Implement voice input functionality
     console.log('Voice input clicked');
+  };
+
+  // Add this function to get alert style based on type and severity
+  const getAlertStyle = (type, severity) => {
+    const baseStyle = 'border-l-4 rounded-lg';
+    
+    if (severity === 'high') {
+      return `${baseStyle} bg-red-100 border-red-500 text-red-900`;
+    }
+    
+    switch (type) {
+      case 'MEDICATION_MISSED':
+        return `${baseStyle} bg-red-100 border-red-500 text-red-900`;
+      case 'SLEEP_DISRUPTION':
+        return `${baseStyle} bg-purple-100 border-purple-500 text-purple-900`;
+      case 'ROUTINE_DEVIATION':
+        return `${baseStyle} bg-amber-100 border-amber-500 text-amber-900`;
+      case 'CONFUSION':
+        return `${baseStyle} bg-orange-100 border-orange-500 text-orange-900`;
+      case 'WANDERING':
+        return `${baseStyle} bg-red-100 border-red-500 text-red-900`;
+      default:
+        return `${baseStyle} bg-amber-100 border-amber-500 text-amber-900`;
+    }
   };
 
   return (
@@ -112,7 +185,7 @@ const Chatbot = () => {
                 message.sender === 'user'
                   ? 'bg-indigo-500 text-white rounded-br-none'
                   : message.sender === 'alert'
-                  ? 'bg-amber-100 border-l-4 border-amber-500 text-amber-900'
+                  ? getAlertStyle(message.type, message.severity)
                   : 'bg-white shadow-md rounded-bl-none'
               }`}
             >

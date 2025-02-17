@@ -1,64 +1,83 @@
+import React, { useState, useEffect } from 'react';
+import { format, parseISO } from 'date-fns';
+
 const ChatLogs = () => {
-  const mockLogs = [
-    {
-      id: 1,
-      timestamp: '10:30 AM',
-      message: "I'm feeling a bit confused today",
-      response: "I understand. Let's take it step by step. Can you tell me what's confusing you?",
-      sentiment: 'concerned'
-    },
-    {
-      id: 2,
-      timestamp: '11:45 AM',
-      message: "What time is my medication?",
-      response: "Your next medication is scheduled for 12:00 PM, in about 15 minutes. It's the blue pill with water.",
-      sentiment: 'neutral'
+  const [chatLogs, setChatLogs] = useState([]);
+
+  // Function to format timestamp safely
+  const formatTimestamp = (timestamp) => {
+    try {
+      if (!timestamp) return 'No date';
+      return format(parseISO(timestamp), 'MMM d, yyyy h:mm a');
+    } catch (error) {
+      console.error('Error formatting timestamp:', error);
+      return 'Invalid date';
     }
-  ];
+  };
+
+  // Get alert severity class
+  const getAlertClass = (hasAlert) => {
+    if (!hasAlert) return 'border-l-4 border-gray-200';
+    return 'border-l-4 border-red-500 bg-red-50';
+  };
+
+  // Load chat logs from localStorage
+  useEffect(() => {
+    try {
+      const storedLogs = JSON.parse(localStorage.getItem('chatLogs') || '[]');
+      setChatLogs(storedLogs.filter(log => log !== null));
+    } catch (error) {
+      console.error('Error loading chat logs:', error);
+      setChatLogs([]);
+    }
+  }, []);
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-slate-900">Chat History</h2>
-        <div className="flex space-x-2">
-          <select className="border rounded-md px-3 py-2 text-sm text-slate-900 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-            <option>All Messages</option>
-            <option>Important</option>
-            <option>Flagged</option>
-          </select>
-          <button className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm hover:bg-indigo-700">
-            Export Logs
-          </button>
-        </div>
-      </div>
+    <div className="bg-white rounded-lg shadow-md p-6">
+      <h2 className="text-xl font-semibold text-slate-900 mb-4">Conversation History</h2>
       
       <div className="space-y-4">
-        {mockLogs.map((log) => (
-          <div key={log.id} className="border rounded-lg p-4 hover:bg-indigo-50 transition-colors">
+        {chatLogs.map((log, index) => (
+          <div 
+            key={index}
+            className={`p-4 rounded-lg ${getAlertClass(log.alert)}`}
+          >
             <div className="flex justify-between items-start mb-2">
-              <span className="text-sm font-medium text-slate-900">{log.timestamp}</span>
-              <span className={`px-2 py-1 rounded-full text-xs ${
-                log.sentiment === 'concerned' 
-                  ? 'bg-amber-100 text-amber-900' 
-                  : 'bg-emerald-100 text-emerald-900'
+              <span className="text-sm text-gray-500">
+                {formatTimestamp(log.timestamp)}
+              </span>
+              <span className={`text-sm ${
+                log.user_type === 'patient' ? 'text-blue-600' : 'text-green-600'
               }`}>
-                {log.sentiment}
+                {log.user_type === 'patient' ? 'Pam' : 'Laurel'}
               </span>
             </div>
+            
             <div className="space-y-2">
-              <p className="text-slate-900">
-                <span className="font-medium text-indigo-900">Patient:</span> {log.message}
-              </p>
-              <p className="text-slate-900">
-                <span className="font-medium text-indigo-900">Bot:</span> {log.response}
-              </p>
-            </div>
-            <div className="mt-3 flex space-x-2">
-              <button className="text-sm text-indigo-600 hover:text-indigo-800">Flag</button>
-              <button className="text-sm text-indigo-600 hover:text-indigo-800">Add Note</button>
+              <div className="flex items-start">
+                <span className="font-medium text-gray-700 mr-2">User:</span>
+                <p className="text-gray-900">{log.user_message}</p>
+              </div>
+              
+              <div className="flex items-start">
+                <span className="font-medium text-gray-700 mr-2">Bot:</span>
+                <p className="text-gray-900">{log.bot_response}</p>
+              </div>
+              
+              {log.alert && log.alert_message && (
+                <div className="mt-2 text-red-600 text-sm">
+                  ⚠️ {log.alert_message}
+                </div>
+              )}
             </div>
           </div>
         ))}
+
+        {chatLogs.length === 0 && (
+          <div className="text-center text-gray-500 py-8">
+            No conversation logs available
+          </div>
+        )}
       </div>
     </div>
   );
