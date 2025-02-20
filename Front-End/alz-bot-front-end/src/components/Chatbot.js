@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import Reminders from './Reminders';
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
@@ -9,6 +10,7 @@ const Chatbot = () => {
   const messagesEndRef = useRef(null);
   const { user } = useContext(AuthContext);
   const [conversationFlags, setConversationFlags] = useState([]);
+  const remindersRef = useRef();
 
   // Initialize with welcome message based on user type
   useEffect(() => {
@@ -45,14 +47,30 @@ const Chatbot = () => {
     setIsTyping(true);
 
     try {
+      // Get current reminders
+      const currentReminders = JSON.parse(localStorage.getItem('reminders') || '[]');
+
+      // Send message along with current reminders
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/chatbot/chat`, {
         message: newMessage,
-        user_type: user.role
+        user_type: user.role,
+        reminders: currentReminders // Include reminders in the request
       });
+
+      // Handle reminder if set
+      if (response.data.reminder_set && response.data.reminder_details) {
+        remindersRef.current?.addReminder(response.data.reminder_details);
+        const reminderConfirmation = {
+          id: Date.now() + 1,
+          text: "✅ Reminder set successfully!",
+          sender: 'bot'
+        };
+        setMessages((prevMessages) => [...prevMessages, reminderConfirmation]);
+      }
 
       // Add the bot response
       const botMessage = { 
-        id: Date.now() + 1, 
+        id: Date.now() + 2, 
         text: response.data.response, 
         sender: 'bot'
       };
@@ -61,7 +79,7 @@ const Chatbot = () => {
       // Handle alerts
       if (response.data.alert) {
         const alertMessage = {
-          id: Date.now() + 2,
+          id: Date.now() + 3,
           text: `⚠️ ${response.data.alert_message}`,
           sender: 'alert',
           type: response.data.alert_type,
@@ -81,7 +99,7 @@ const Chatbot = () => {
         // Add specific reassurance messages based on alert type
         if (user.role === 'patient') {
           let reassuranceMessage = {
-            id: Date.now() + 3,
+            id: Date.now() + 4,
             sender: 'bot',
             isReassurance: true
           };
@@ -246,6 +264,8 @@ const Chatbot = () => {
           </button>
         </form>
       </div>
+
+      <Reminders ref={remindersRef} />
     </div>
   );
 };
