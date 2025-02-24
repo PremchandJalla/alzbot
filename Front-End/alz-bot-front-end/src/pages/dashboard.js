@@ -6,6 +6,8 @@ import MedicalHistoryManager from '../components/MedicalHistoryManager';
 import Alerts from '../components/Alerts';
 import PatientProfile from '../components/PatientProfile';
 import MedicalFiles from '../components/MedicalFiles';
+import PatientNotes from '../components/PatientNotes';
+import DietaryInfo from '../components/DietaryInfo';
 
 const Dashboard = () => {
   const { user, logout } = useContext(AuthContext);
@@ -27,7 +29,15 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
-        return <PatientProfile />;
+        return (
+          <>
+            <PatientProfile />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <PatientNotes />
+              <DietaryInfo />
+            </div>
+          </>
+        );
       case 'routines':
         return <RoutineManager />;
       case 'medical-history':
