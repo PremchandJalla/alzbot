@@ -17,4 +17,75 @@
 @keyframes bounce {
   0%, 80%, 100% { transform: scale(0); }
   40% { transform: scale(1); }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Progress bar styling */
+.progress-bar {
+  @apply h-2 bg-slate-200 rounded-full overflow-hidden;
+}
+
+.progress-bar-fill {
+  @apply h-full bg-indigo-500 transition-all duration-300;
+}
+
+/* Hover effects for interactive elements */
+.interactive-element {
+  @apply transition-all duration-200 hover:shadow-md hover:-translate-y-0.5;
+}
+
+/* Badge animations */
+@keyframes badgeEarn {
+  0% { transform: scale(0.5); opacity: 0; }
+  70% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.badge-earn {
+  animation: badgeEarn 0.5s ease-out forwards;
+}
+
+/* Sidebar transition */
+.sidebar-transition {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+/* Mobile sidebar overlay */
+.sidebar-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden;
+}
+
+/* Section transitions */
+.section-transition {
+  @apply transition-opacity duration-200;
+}
+
+.section-enter {
+  @apply opacity-0;
+}
+
+.section-enter-active {
+  @apply opacity-100;
+}
+
+.section-exit {
+  @apply opacity-100;
+}
+
+.section-exit-active {
+  @apply opacity-0;
 } 

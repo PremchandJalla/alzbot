@@ -1,8 +1,9 @@
 import { useContext, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useRouter } from 'next/router';
+import TeacherDashboard from '../components/TeacherDashboard';
 
-const TeacherDashboard = () => {
+const TeacherDashboardPage = () => {
   const { user } = useContext(AuthContext);
   const router = useRouter();
 
@@ -16,12 +17,7 @@ const TeacherDashboard = () => {
     return null;
   }
 
-  return (
-    <div className="min-h-screen bg-slate-50">
-      <h1 className="text-2xl font-bold text-center mt-4">Teacher Dashboard</h1>
-      {/* Add student monitoring features here */}
-    </div>
-  );
+  return <TeacherDashboard />;
 };
 
-export default TeacherDashboard; 
+export default TeacherDashboardPage; 

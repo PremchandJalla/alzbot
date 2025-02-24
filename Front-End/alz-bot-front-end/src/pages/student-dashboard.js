@@ -1,9 +1,9 @@
 import { useContext, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useRouter } from 'next/router';
-import Chatbot from '../components/Chatbot';
+import StudentDashboard from '../components/StudentDashboard';
 
-const StudentDashboard = () => {
+const StudentDashboardPage = () => {
   const { user } = useContext(AuthContext);
   const router = useRouter();
 
@@ -17,13 +17,7 @@ const StudentDashboard = () => {
     return null;
   }
 
-  return (
-    <div className="min-h-screen bg-slate-50">
-      <h1 className="text-2xl font-bold text-center mt-4">Student Dashboard</h1>
-      <Chatbot />
-      {/* Add points and rewards display here */}
-    </div>
-  );
+  return <StudentDashboard />;
 };
 
-export default StudentDashboard; 
+export default StudentDashboardPage; 
