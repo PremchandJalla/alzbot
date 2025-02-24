@@ -104,6 +104,8 @@ const Login = () => {
               <p>Demo Credentials:</p>
               <p>Patient: pam / patient123</p>
               <p>Caregiver: laurel / caregiver123</p>
+              <p>Student: studentUser / student123</p>
+              <p>Teacher: teacherUser / teacher123</p>
             </div>
           </form>
         </div>

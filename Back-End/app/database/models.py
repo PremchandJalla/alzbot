@@ -10,13 +10,14 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    role = Column(String)  # 'caregiver' or 'patient'
+    role = Column(String)  # 'caregiver', 'patient', 'student', or 'teacher'
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     patients = relationship("Patient", back_populates="caregiver")
     patient_profile = relationship("Patient", back_populates="user", uselist=False)
+    student_points = relationship("StudentPoints", back_populates="user", uselist=False)
 
 class Patient(Base):
     __tablename__ = "patients"
@@ -61,4 +62,14 @@ class ChatLog(Base):
     sentiment = Column(String, nullable=True)
 
     # Relationships
-    patient = relationship("Patient", back_populates="chat_logs") 
+    patient = relationship("Patient", back_populates="chat_logs")
+
+class StudentPoints(Base):
+    __tablename__ = "student_points"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    points = Column(Integer, default=0)
+
+    # Relationships
+    user = relationship("User", back_populates="student_points") 

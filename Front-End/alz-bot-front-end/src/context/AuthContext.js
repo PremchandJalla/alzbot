@@ -6,7 +6,9 @@ export const AuthContext = createContext();
 // Hardcoded credentials for POC
 const CREDENTIALS = {
   caregiver: { username: 'laurel', password: 'caregiver123' },
-  patient: { username: 'pam', password: 'patient123' }
+  patient: { username: 'pam', password: 'patient123' },
+  student: { username: 'studentUser', password: 'student123' },
+  teacher: { username: 'teacherUser', password: 'teacher123' }
 };
 
 export const AuthProvider = ({ children }) => {
@@ -43,6 +45,28 @@ export const AuthProvider = ({ children }) => {
       };
       setUser(userData);
       router.push('/chatbot');
+    } else if (
+      credentials.username === CREDENTIALS.student.username &&
+      credentials.password === CREDENTIALS.student.password
+    ) {
+      const userData = {
+        username: 'studentUser',
+        role: 'student',
+        displayName: 'Student User'
+      };
+      setUser(userData);
+      router.push('/student-dashboard');
+    } else if (
+      credentials.username === CREDENTIALS.teacher.username &&
+      credentials.password === CREDENTIALS.teacher.password
+    ) {
+      const userData = {
+        username: 'teacherUser',
+        role: 'teacher',
+        displayName: 'Teacher User'
+      };
+      setUser(userData);
+      router.push('/teacher-dashboard');
     } else {
       throw new Error('Invalid credentials');
     }
